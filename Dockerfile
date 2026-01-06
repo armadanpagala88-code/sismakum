@@ -48,7 +48,6 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
 # Copy other root files
 COPY index.php ./
-COPY .htaccess ./  2>/dev/null || true
 
 # Nginx config
 RUN mkdir -p /run/nginx
