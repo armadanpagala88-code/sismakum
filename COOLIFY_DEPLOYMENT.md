@@ -30,25 +30,34 @@ Coolify will load the `docker-compose.yml` file content.
 #### Environment Variables
 You need to set the environment variables in the **Environment Variables** tab for the `app` service (or globally if Coolify asks).
 
-Copy these values (adjust for production):
+**IMPORTANT: Replace the passwords below with the generated secure passwords provided to you!**
+
+Copy these values:
 
 ```env
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://your-domain.com
+APP_URL=http://sismakum.konawekabgo.id
+
+APP_PORT=8100 
+PMA_PORT=8180
 
 DB_CONNECTION=mysql
 DB_HOST=db
 DB_PORT=3306
 DB_DATABASE=sismakum
 DB_USERNAME=sismakum
-DB_PASSWORD=your_secure_password
 
-# Using the internal db service password
-DB_ROOT_PASSWORD=your_secure_root_password
+# SECURE PASSWORD CONFIGURATION
+# You MUST set these to the same secure value
+DB_PASSWORD=SecurePass_9Xv2_mK8_pL
+DB_ROOT_PASSWORD=RootSecure_7Yn_2qW9_z
 ```
 
-**Important**: Make sure `DB_PASSWORD` matches `MYSQL_PASSWORD` and `DB_ROOT_PASSWORD` matches `MYSQL_ROOT_PASSWORD` in your config.
+**Important**: 
+1. `DB_PASSWORD` MUST match `MYSQL_PASSWORD` (if set manually) or the internal password of the user.
+2. `DB_ROOT_PASSWORD` sets the root password for the database container.
+
 
 ### 4. Domains & Networking
 1.  **App Service**:

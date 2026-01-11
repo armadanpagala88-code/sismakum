@@ -16,7 +16,7 @@ services:
       - DB_PORT=3306
       - DB_DATABASE=${DB_DATABASE:-sismakum}
       - DB_USERNAME=${DB_USERNAME:-sismakum}
-      - DB_PASSWORD=${DB_PASSWORD:-sismakum}
+      - DB_PASSWORD=${DB_PASSWORD}
       - MAIL_MAILER=${MAIL_MAILER:-smtp}
       - MAIL_HOST=${MAIL_HOST:-}
       - MAIL_PORT=${MAIL_PORT:-587}
@@ -38,10 +38,10 @@ services:
     image: mysql:8.0
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE:-sismakum}
       MYSQL_USER: ${DB_USERNAME:-sismakum}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-sismakum}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
