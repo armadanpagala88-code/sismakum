@@ -83,3 +83,17 @@ If you see an error like `Bind for 0.0.0.0:8000 failed: port is already allocate
 
 Alternatively, if you are using Coolify's Domains features to access the site, you can likely remove the `ports:` section from `docker-compose.yml` entirely, as Coolify communicates via the internal Docker network.
 
+### Networking Error (iptables: No chain/target/match by that name)
+If you see an error like `Unable to enable DNAT rule... iptables: No chain/target/match by that name`, it means the Docker networking configuration on your VPS is corrupted (often happens if `ufw` or `firewalld` was reloaded).
+
+**Solution 1 (Recommended if you have SSH access)**:
+1.  SSH into your VPS.
+2.  Restart the Docker service: `sudo systemctl restart docker`.
+3.  Redeploy in Coolify.
+
+**Solution 2 (If you strictly use Domains in Coolify)**:
+1.  Remove the `ports:` sections from `docker-compose.yml`.
+2.  Commit and push the changes.
+3.  Redeploy. (This disables direct IP access and relies solely on Coolify's domain routing).
+
+
