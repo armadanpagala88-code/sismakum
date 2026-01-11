@@ -54,9 +54,11 @@ DB_ROOT_PASSWORD=your_secure_root_password
 1.  **App Service**:
     - Set the **Domain** (e.g., `https://sismakum.your-vps.com`).
     - Container Port: `80` (This maps to the nginx inside the container).
+    - **Note**: The external port mapping in `docker-compose.yml` has been updated to `8100` to avoid conflicts.
 2.  **phpMyAdmin Service**:
     - Set the **Domain** (e.g., `https://db.sismakum.your-vps.com`).
     - Container Port: `80`.
+    - **Note**: The external port mapping in `docker-compose.yml` has been updated to `8180`.
 
 ### 5. Deployment
 1.  Click **"Deploy"**.
