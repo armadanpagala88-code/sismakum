@@ -105,4 +105,14 @@ If you see an error like `Unable to enable DNAT rule... iptables: No chain/targe
 2.  Commit and push the changes.
 3.  Redeploy. (This disables direct IP access and relies solely on Coolify's domain routing).
 
+### HTTPS/SSL Configuration
+If you encounter **404 Errors** when accessing via HTTPS:
+1.  **Enforce HTTPS in App**: Update `APP_URL` to start with `https://`.
+2.  **Enable SSL in Coolify**:
+    -   Go to your resource in Coolify.
+    -   Ensure the domain is set to `https://sismakum.konawekabgo.id`.
+    -   If there is a checkbox for "HTTPS" or "Force HTTPS", check it.
+    -   Click **Save** and **Redeploy**.
+
+
 
