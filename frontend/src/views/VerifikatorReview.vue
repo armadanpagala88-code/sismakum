@@ -85,7 +85,7 @@
             </span>
           </div>
           <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ catatan.catatan }}</p>
-          <!-- File Download Link -->
+          <!-- Word File Download Link -->
           <div v-if="catatan.file_path" class="mt-2">
             <a
               :href="`${apiBaseUrl}/storage/${catatan.file_path}`"
@@ -93,7 +93,18 @@
               class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
               @click.prevent="downloadReviewFile(catatan)"
             >
-              📄 {{ catatan.file_name || 'Download Dokumen' }}
+              📄 {{ catatan.file_name || 'Download Dokumen Word' }}
+            </a>
+          </div>
+          <!-- PDF File Download Link -->
+          <div v-if="catatan.file_pdf_path" class="mt-2">
+            <a
+              :href="`${apiBaseUrl}/storage/${catatan.file_pdf_path}`"
+              target="_blank"
+              class="inline-flex items-center text-sm text-red-600 hover:text-red-800"
+              @click.prevent="downloadPdfFile(catatan)"
+            >
+              📕 {{ catatan.file_pdf_name || 'Download PDF' }}
             </a>
           </div>
           <div v-if="catatan.is_resolved" class="mt-2 text-xs text-green-600">
@@ -142,6 +153,19 @@
             File dipilih: {{ reviewForm.file.name }}
           </p>
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Upload Dokumen PDF (Opsional)</label>
+          <input
+            type="file"
+            @change="handlePdfChange"
+            accept=".pdf,application/pdf"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <p class="mt-1 text-xs text-gray-500">Format: .pdf (Maks. 5MB)</p>
+          <p v-if="reviewForm.filePdf" class="mt-1 text-xs text-green-600">
+            File dipilih: {{ reviewForm.filePdf.name }}
+          </p>
+        </div>
         <div class="flex justify-end">
           <button
             type="submit"
@@ -169,7 +193,8 @@ const pengusulan = ref(null)
 const reviewForm = ref({
   status: 'diterima',
   catatan: '',
-  file: null
+  file: null,
+  filePdf: null
 })
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin
 
@@ -217,6 +242,25 @@ function handleFileChange(event) {
       return
     }
     reviewForm.value.file = file
+  }
+}
+
+function handlePdfChange(event) {
+  const file = event.target.files[0]
+  if (file) {
+    // Validate file type
+    if (file.type !== 'application/pdf' && !file.name.match(/\.pdf$/i)) {
+      alert('Hanya file PDF (.pdf) yang diperbolehkan')
+      event.target.value = ''
+      return
+    }
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB')
+      event.target.value = ''
+      return
+    }
+    reviewForm.value.filePdf = file
   }
 }
 
@@ -294,6 +338,43 @@ async function downloadReviewFile(catatan) {
   }
 }
 
+async function downloadPdfFile(catatan) {
+  try {
+    const token = localStorage.getItem('token')
+    const url = `${apiBaseUrl}/api/dokumen/${encodeURIComponent(catatan.file_pdf_path)}`
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/octet-stream, */*'
+      }
+    })
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        alert('Session expired. Silakan login kembali.')
+        router.push('/login')
+        return
+      }
+      throw new Error(`Failed to download file: ${response.statusText}`)
+    }
+    
+    const blob = await response.blob()
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = catatan.file_pdf_name || 'review_document.pdf'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+  } catch (error) {
+    console.error('Error downloading file:', error)
+    alert('Gagal mengunduh dokumen: ' + error.message)
+  }
+}
+
 async function loadPengusulan() {
   try {
     await pengusulanStore.fetchDetail(route.params.id)
@@ -310,7 +391,8 @@ async function submitReview() {
       route.params.id,
       reviewForm.value.status,
       reviewForm.value.catatan,
-      reviewForm.value.file
+      reviewForm.value.file,
+      reviewForm.value.filePdf
     )
     alert('Review berhasil disimpan')
     router.push('/dashboard/verifikator')

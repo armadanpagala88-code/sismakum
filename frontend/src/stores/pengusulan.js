@@ -46,7 +46,7 @@ export const usePengusulanStore = defineStore('pengusulan', () => {
           formData.append(key, data[key])
         }
       })
-      
+
       const response = await api.post('/pengusulan-perbub', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -84,7 +84,7 @@ export const usePengusulanStore = defineStore('pengusulan', () => {
     }
   }
 
-  async function reviewPengusulan(id, status, catatan, file = null) {
+  async function reviewPengusulan(id, status, catatan, file = null, filePdf = null) {
     loading.value = true
     try {
       const formData = new FormData()
@@ -93,7 +93,10 @@ export const usePengusulanStore = defineStore('pengusulan', () => {
       if (file) {
         formData.append('file_review', file)
       }
-      
+      if (filePdf) {
+        formData.append('file_review_pdf', filePdf)
+      }
+
       const response = await api.post(`/pengusulan-perbub/${id}/review`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -131,7 +134,7 @@ export const usePengusulanStore = defineStore('pengusulan', () => {
           formData.append(key, data[key])
         }
       })
-      
+
       const response = await api.put(`/pengusulan-perbub/${id}/update-revisi`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'

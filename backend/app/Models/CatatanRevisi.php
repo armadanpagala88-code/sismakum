@@ -18,6 +18,8 @@ class CatatanRevisi extends Model
         'catatan',
         'file_path',
         'file_name',
+        'file_pdf_path',
+        'file_pdf_name',
         'is_resolved',
         'resolved_at',
     ];

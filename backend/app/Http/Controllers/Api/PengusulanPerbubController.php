@@ -135,6 +135,7 @@ class PengusulanPerbubController extends Controller
             'status' => 'required|in:diterima,ditolak,revisi',
             'catatan' => 'required|string',
             'file_review' => 'nullable|file|mimes:doc,docx|max:10240',
+            'file_review_pdf' => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
         $pengusulan = PengusulanPerbub::findOrFail($id);
@@ -160,13 +161,22 @@ class PengusulanPerbubController extends Controller
             'updated_by' => $request->user()->id,
         ]);
 
-        // Handle file upload
+        // Handle Word file upload
         $filePath = null;
         $fileName = null;
         if ($request->hasFile('file_review')) {
             $file = $request->file('file_review');
             $filePath = $file->store('review_files', 'public');
             $fileName = $file->getClientOriginalName();
+        }
+
+        // Handle PDF file upload
+        $filePdfPath = null;
+        $filePdfName = null;
+        if ($request->hasFile('file_review_pdf')) {
+            $file = $request->file('file_review_pdf');
+            $filePdfPath = $file->store('review_files', 'public');
+            $filePdfName = $file->getClientOriginalName();
         }
 
         // Simpan catatan revisi dengan file
@@ -178,6 +188,8 @@ class PengusulanPerbubController extends Controller
             'catatan' => $request->catatan,
             'file_path' => $filePath,
             'file_name' => $fileName,
+            'file_pdf_path' => $filePdfPath,
+            'file_pdf_name' => $filePdfName,
         ]);
 
         // Send email notification to dinas
