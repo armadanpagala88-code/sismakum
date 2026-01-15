@@ -240,7 +240,7 @@
                 </span>
               </div>
               <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ catatan.catatan }}</p>
-              <!-- File Download Link -->
+              <!-- Word File Download Link -->
               <div v-if="catatan.file_path" class="mt-3 p-2 bg-blue-50 rounded">
                 <a
                   :href="`${apiBaseUrl}/storage/${catatan.file_path}`"
@@ -249,6 +249,17 @@
                   @click.prevent="downloadReviewFile(catatan)"
                 >
                   📄 {{ catatan.file_name || 'Download Dokumen Review' }}
+                </a>
+              </div>
+              <!-- PDF File Download Link -->
+              <div v-if="catatan.file_review_pdf" class="mt-3 p-2 bg-red-50 rounded">
+                <a
+                  :href="`${apiBaseUrl}/storage/${catatan.file_review_pdf}`"
+                  target="_blank"
+                  class="inline-flex items-center text-sm text-red-600 hover:text-red-800 font-medium"
+                  @click.prevent="downloadPdfFile(catatan)"
+                >
+                  📕 {{ catatan.file_review_pdf_name || 'Download PDF' }}
                 </a>
               </div>
               <div v-if="catatan.is_resolved" class="mt-2 text-xs text-green-600">
@@ -530,6 +541,46 @@ async function downloadReviewFile(catatan) {
     alert('Gagal mengunduh dokumen review: ' + error.message)
   }
 }
+
+async function downloadPdfFile(catatan) {
+  try {
+    const token = localStorage.getItem('token')
+    // Encode path segments but preserve slashes
+    const encodedPath = catatan.file_review_pdf.split('/').map(segment => encodeURIComponent(segment)).join('/')
+    const url = `${apiBaseUrl}/api/dokumen/${encodedPath}`
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/octet-stream, */*'
+      }
+    })
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        alert('Session expired. Silakan login kembali.')
+        router.push('/login')
+        return
+      }
+      throw new Error(`Failed to download file: ${response.statusText}`)
+    }
+    
+    const blob = await response.blob()
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.download = catatan.file_review_pdf_name || 'review_document.pdf'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(downloadUrl)
+  } catch (error) {
+    console.error('Error downloading PDF file:', error)
+    alert('Gagal mengunduh dokumen PDF: ' + error.message)
+  }
+}
+
 async function loadDetail() {
   loading.value = true
   try {
