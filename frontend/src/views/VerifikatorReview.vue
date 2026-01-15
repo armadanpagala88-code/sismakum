@@ -1,13 +1,21 @@
 <template>
   <div class="space-y-6" v-if="pengusulan">
-    <div>
-      <router-link
-        to="/dashboard/verifikator"
-        class="text-blue-600 hover:text-blue-800 mb-4 inline-block"
+    <div class="flex justify-between items-center">
+      <div>
+        <router-link
+          to="/dashboard/verifikator"
+          class="text-blue-600 hover:text-blue-800 mb-4 inline-block"
+        >
+          ← Kembali
+        </router-link>
+        <h1 class="text-2xl font-bold text-gray-900">Review Usulan PERBUB</h1>
+      </div>
+      <button
+        @click="printDetail"
+        class="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
       >
-        ← Kembali
-      </router-link>
-      <h1 class="text-2xl font-bold text-gray-900">Review Usulan PERBUB</h1>
+        🖨️ Cetak PDF
+      </button>
     </div>
 
     <!-- Usulan Details -->
@@ -459,6 +467,144 @@ async function deleteCatatan(catatan) {
     console.error('Error deleting catatan:', error)
     alert(error.message || 'Gagal menghapus catatan')
   }
+}
+
+function printDetail() {
+  const printWindow = window.open('', '_blank')
+  const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
+  
+  // Build catatan revisi HTML
+  const catatanHtml = pengusulan.value.catatan_revisi?.length > 0 
+    ? pengusulan.value.catatan_revisi.map(cat => `
+      <div style="background: #fff8e6; padding: 15px; margin-bottom: 10px; border-left: 4px solid #f59e0b; border-radius: 4px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span style="background: ${cat.tipe === 'revisi' ? '#fef3c7' : cat.tipe === 'tolak' ? '#fee2e2' : '#dbeafe'}; color: ${cat.tipe === 'revisi' ? '#92400e' : cat.tipe === 'tolak' ? '#991b1b' : '#1e40af'}; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+            ${getTipeLabel(cat.tipe)}
+          </span>
+          <span style="font-size: 11px; color: #666;">${formatDateTime(cat.created_at)} oleh ${cat.creator?.name || '-'}</span>
+        </div>
+        <p style="font-size: 12px; margin: 0; white-space: pre-wrap;">${cat.catatan}</p>
+        ${cat.file_name ? `<p style="margin-top: 8px; font-size: 11px; color: #2563eb;">📄 ${cat.file_name}</p>` : ''}
+        ${cat.file_review_pdf_name ? `<p style="margin-top: 4px; font-size: 11px; color: #dc2626;">📕 ${cat.file_review_pdf_name}</p>` : ''}
+      </div>
+    `).join('')
+    : '<p style="color: #666; font-style: italic;">Tidak ada catatan revisi</p>'
+  
+  // Build dokumen list HTML
+  const dokumenHtml = pengusulan.value.dokumen?.length > 0
+    ? pengusulan.value.dokumen.map(dok => `
+      <div style="padding: 10px; background: #f9fafb; margin-bottom: 8px; border-radius: 4px;">
+        📄 ${dok.nama_file}
+      </div>
+    `).join('')
+    : '<p style="color: #666; font-style: italic;">Tidak ada dokumen</p>'
+  
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Detail Usulan - ${pengusulan.value.judul_perbub}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+        h1 { text-align: center; font-size: 16px; margin-bottom: 5px; }
+        h2 { text-align: center; font-size: 20px; margin-bottom: 20px; }
+        h3 { font-size: 14px; margin-top: 25px; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 5px; color: #1e40af; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-item label { font-weight: bold; color: #374151; font-size: 12px; display: block; margin-bottom: 3px; }
+        .info-item p { margin: 0; font-size: 13px; }
+        .section { margin-bottom: 25px; }
+        .content-box { background: #f9fafb; padding: 15px; border-radius: 6px; }
+        .footer { margin-top: 40px; text-align: right; font-size: 11px; color: #666; }
+        @media print { body { margin: 0; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>USULAN PERATURAN BUPATI</h1>
+        <h2>${pengusulan.value.judul_perbub}</h2>
+        <span class="status-badge" style="background: ${pengusulan.value.status === 'diterima' ? '#d1fae5' : pengusulan.value.status === 'ditolak' ? '#fee2e2' : pengusulan.value.status === 'revisi' ? '#fef3c7' : '#dbeafe'}; color: ${pengusulan.value.status === 'diterima' ? '#065f46' : pengusulan.value.status === 'ditolak' ? '#991b1b' : pengusulan.value.status === 'revisi' ? '#92400e' : '#1e40af'};">
+          ${getStatusLabel(pengusulan.value.status)}
+        </span>
+      </div>
+      
+      <div class="section">
+        <h3>📋 Informasi Umum</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Nomor Surat</label>
+            <p>${pengusulan.value.nomor_surat || '-'}</p>
+          </div>
+          <div class="info-item">
+            <label>Tanggal Surat</label>
+            <p>${formatDate(pengusulan.value.tanggal_surat)}</p>
+          </div>
+          <div class="info-item">
+            <label>Dinas Pengusul</label>
+            <p>${pengusulan.value.dinas?.name || '-'}</p>
+          </div>
+          <div class="info-item">
+            <label>Tanggal Dibuat</label>
+            <p>${formatDateTime(pengusulan.value.created_at)}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h3>📝 Latar Belakang</h3>
+        <div class="content-box">
+          <p style="margin: 0; font-size: 12px; white-space: pre-wrap;">${pengusulan.value.latar_belakang || '-'}</p>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h3>🎯 Maksud dan Tujuan</h3>
+        <div class="content-box">
+          <p style="margin: 0; font-size: 12px; white-space: pre-wrap;">${pengusulan.value.maksud_dan_tujuan || '-'}</p>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h3>📍 Ruang Lingkup</h3>
+        <div class="content-box">
+          <p style="margin: 0; font-size: 12px; white-space: pre-wrap;">${pengusulan.value.ruang_lingkup || '-'}</p>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h3>📂 Dokumen Pendukung</h3>
+        ${dokumenHtml}
+      </div>
+      
+      <div class="section">
+        <h3>💬 Catatan Revisi</h3>
+        ${catatanHtml}
+      </div>
+      
+      <div class="footer">
+        <p>Dicetak pada: ${today}</p>
+        <p>SISMAKUM - Kabupaten Konawe</p>
+      </div>
+      
+      <script>
+        window.onload = function() { window.print(); }
+      </script>
+    </body>
+    </html>
+  `)
+  printWindow.document.close()
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    draft: 'Draft',
+    diajukan: 'Diajukan',
+    revisi: 'Revisi',
+    diterima: 'Diterima',
+    ditolak: 'Ditolak'
+  }
+  return labels[status] || status
 }
 
 onMounted(() => {

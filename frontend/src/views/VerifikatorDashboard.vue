@@ -1,8 +1,16 @@
 <template>
   <div class="space-y-6">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">Dashboard Verifikator</h1>
-      <p class="text-gray-600 mt-1">Verifikasi dan review usulan PERBUB</p>
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Dashboard Verifikator</h1>
+        <p class="text-gray-600 mt-1">Verifikasi dan review usulan PERBUB</p>
+      </div>
+      <button
+        @click="printData"
+        class="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+      >
+        🖨️ Cetak PDF
+      </button>
     </div>
 
     <!-- Statistics -->
@@ -169,6 +177,81 @@ async function confirmDelete(item) {
       alert(error.response?.data?.message || 'Gagal menghapus usulan')
     }
   }
+}
+
+function printData() {
+  const printWindow = window.open('', '_blank')
+  const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
+  
+  const tableRows = pengusulan.value.map((item, index) => `
+    <tr>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+      <td style="border: 1px solid #ddd; padding: 8px;">${item.judul_perbub || '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 8px;">${item.nomor_surat || '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 8px;">${item.dinas?.name || '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${getStatusLabel(item.status)}</td>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${formatDate(item.tanggal_surat)}</td>
+    </tr>
+  `).join('')
+  
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Daftar Usulan PERBUB - ${today}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { text-align: center; font-size: 18px; margin-bottom: 5px; }
+        h2 { text-align: center; font-size: 14px; font-weight: normal; margin-bottom: 20px; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #f5f5f5; border: 1px solid #ddd; padding: 10px; font-size: 12px; }
+        td { font-size: 11px; }
+        .header-info { text-align: center; margin-bottom: 20px; }
+        .stats { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+        .stat-item { text-align: center; padding: 10px; background: #f9f9f9; border-radius: 5px; }
+        .footer { margin-top: 30px; text-align: right; font-size: 12px; }
+        @media print { body { margin: 0; } }
+      </style>
+    </head>
+    <body>
+      <div class="header-info">
+        <h1>DAFTAR USULAN PERBUB</h1>
+        <h2>Kabupaten Konawe - Tanggal Cetak: ${today}</h2>
+      </div>
+      
+      <div class="stats">
+        <div class="stat-item"><strong>${stats.value.diajukan || 0}</strong><br/>Menunggu Verifikasi</div>
+        <div class="stat-item"><strong>${stats.value.revisi || 0}</strong><br/>Perlu Revisi</div>
+        <div class="stat-item"><strong>${stats.value.diterima || 0}</strong><br/>Diterima</div>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px;">No</th>
+            <th>Judul PERBUB</th>
+            <th style="width: 120px;">No. Surat</th>
+            <th style="width: 150px;">Dinas</th>
+            <th style="width: 100px;">Status</th>
+            <th style="width: 120px;">Tanggal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+      
+      <div class="footer">
+        <p>Total: ${pengusulan.value.length} usulan</p>
+      </div>
+      
+      <script>
+        window.onload = function() { window.print(); }
+      </script>
+    </body>
+    </html>
+  `)
+  printWindow.document.close()
 }
 
 onMounted(() => {
