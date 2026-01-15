@@ -28,6 +28,11 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Document download route - protected with auth
 Route::middleware('auth:sanctum')->get('/dokumen/{path}', function ($path) {
+    // Clear any previous output buffering to prevent file corruption
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    
     $filePath = urldecode($path);
     
     // Handle both dokumen_perbub and review_files paths
@@ -50,13 +55,7 @@ Route::middleware('auth:sanctum')->get('/dokumen/{path}', function ($path) {
         abort(404, 'File not found');
     }
     
-    $file = Storage::disk('public')->get($filePath);
-    $mimeType = Storage::disk('public')->mimeType($filePath);
-    $fileName = basename($filePath);
-    
-    return response($file, 200)
-        ->header('Content-Type', $mimeType)
-        ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+    return Storage::disk('public')->download($filePath);
 })->where('path', '.*')->name('dokumen.download');
 
 
