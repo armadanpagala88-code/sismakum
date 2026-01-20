@@ -964,7 +964,7 @@
             </svg>
             <p class="text-sm text-blue-700 text-left">
               Administrator akan memverifikasi dan mengaktifkan akun Anda. 
-              Proses ini biasanya membutuhkan waktu 1-2 hari kerja.
+              Proses ini biasanya membutuhkan waktu 1x 24 Jam.
             </p>
           </div>
         </div>
