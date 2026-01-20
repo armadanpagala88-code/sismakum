@@ -16,13 +16,13 @@ class AdminController extends Controller
     
     public function indexDinas(Request $request)
     {
-        $query = Dinas::with('users');
+        $query = Dinas::withCount('users');
 
         if ($request->has('search')) {
             $query->where('nama_dinas', 'like', '%' . $request->search . '%');
         }
 
-        $dinas = $query->orderBy('nama_dinas', 'asc')->paginate(10);
+        $dinas = $query->orderBy('nama_dinas', 'asc')->paginate(50);
 
         return response()->json($dinas);
     }
@@ -131,7 +131,7 @@ class AdminController extends Controller
             });
         }
 
-        $users = $query->orderBy('name', 'asc')->paginate(10);
+        $users = $query->orderBy('name', 'asc')->paginate(50);
 
         return response()->json($users);
     }
