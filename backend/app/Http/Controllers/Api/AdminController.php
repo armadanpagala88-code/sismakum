@@ -131,7 +131,7 @@ class AdminController extends Controller
             });
         }
 
-        $users = $query->orderBy('name', 'asc')->paginate(50);
+        $users = $query->orderBy('created_at', 'desc')->paginate(50);
 
         return response()->json($users);
     }
