@@ -100,6 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/{id}', [AdminController::class, 'showUser']);
         Route::put('/users/{id}', [AdminController::class, 'updateUser']);
         Route::post('/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus']);
+        Route::get('/users/stats/inactive-count', [AdminController::class, 'getInactiveUsersCount']);
         Route::delete('/users/{id}', [AdminController::class, 'destroyUser']);
 
         // Website management

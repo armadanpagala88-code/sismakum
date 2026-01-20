@@ -268,6 +268,13 @@ class AdminController extends Controller
         return response()->json(['message' => 'User deleted successfully']);
     }
 
+    // Get count of inactive users for badge
+    public function getInactiveUsersCount()
+    {
+        $count = User::where('is_active', false)->count();
+        return response()->json(['count' => $count]);
+    }
+
     // Public endpoint untuk mendapatkan daftar dinas (untuk form registrasi)
     public function publicDinas()
     {

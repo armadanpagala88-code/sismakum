@@ -96,14 +96,23 @@
             </router-link>
             <router-link
               to="/dashboard/admin/users"
-              class="sidebar-link"
+              class="sidebar-link flex items-center justify-between"
               :class="$route.path === '/dashboard/admin/users' || $route.path.startsWith('/dashboard/admin/users') ? 'sidebar-link-active text-white bg-primary-600/20' : 'sidebar-link-inactive text-slate-300'"
               @click="sidebarOpen = false"
             >
-              <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-              </svg>
-              Kelola Users
+              <div class="flex items-center">
+                <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                Kelola Users
+              </div>
+              <span 
+                v-if="inactiveUsersCount > 0" 
+                class="ml-2 px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full"
+                title="User belum diaktifkan"
+              >
+                {{ inactiveUsersCount }}
+              </span>
             </router-link>
             <router-link
               to="/dashboard/admin/website"
@@ -239,12 +248,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import api from '../services/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const sidebarOpen = ref(false)
 const user = computed(() => authStore.user)
+const inactiveUsersCount = ref(0)
 
 const userInitials = computed(() => {
   if (!user.value?.name) return 'U'
@@ -268,7 +279,20 @@ onMounted(async () => {
   if (authStore.isAuthenticated && !authStore.user) {
     await authStore.fetchUser()
   }
+  // Fetch inactive users count for admin badge
+  if (authStore.user?.role === 'admin') {
+    await fetchInactiveUsersCount()
+  }
 })
+
+async function fetchInactiveUsersCount() {
+  try {
+    const response = await api.get('/admin/users/stats/inactive-count')
+    inactiveUsersCount.value = response.data.count || 0
+  } catch (error) {
+    console.error('Error fetching inactive users count:', error)
+  }
+}
 
 async function handleLogout() {
   await authStore.logout()
