@@ -14,6 +14,32 @@
       </button>
     </div>
 
+    <!-- Search Box -->
+    <div class="mb-4 flex flex-col sm:flex-row gap-3">
+      <div class="flex-1">
+        <input
+          v-model="searchQuery"
+          @input="handleSearch"
+          type="text"
+          placeholder="🔍 Cari nama atau email pengguna..."
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        />
+      </div>
+      <button 
+        v-if="searchQuery"
+        @click="clearSearch"
+        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700"
+      >
+        Hapus
+      </button>
+    </div>
+
+    <!-- Info Bar -->
+    <div class="mb-3 text-sm text-gray-600">
+      Menampilkan <strong>{{ startIndex }}</strong> - <strong>{{ endIndex }}</strong> 
+      dari <strong>{{ totalUsers }}</strong> pengguna
+    </div>
+
     <!-- Users Table -->
     <div class="card">
       <div class="card-body p-0">
@@ -34,6 +60,11 @@
               </tr>
             </thead>
             <tbody>
+              <tr v-if="users.length === 0">
+                <td colspan="6" class="text-center py-8 text-gray-500">
+                  {{ searchQuery ? 'Tidak ada pengguna yang cocok dengan pencarian' : 'Belum ada data pengguna' }}
+                </td>
+              </tr>
               <tr v-for="user in users" :key="user.id">
                 <td>
                   <div class="text-sm font-semibold text-gray-900">{{ user.name }}</div>
@@ -89,6 +120,72 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div v-if="lastPage > 1" class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <!-- Left: Page Info -->
+          <div class="text-sm text-gray-700">
+            Halaman <strong>{{ currentPage }}</strong> dari <strong>{{ lastPage }}</strong>
+          </div>
+
+          <!-- Right: Pagination Buttons -->
+          <div class="flex flex-wrap gap-2 justify-center">
+            <!-- First Page -->
+            <button
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              title="Halaman Pertama"
+            >
+              «
+            </button>
+
+            <!-- Previous -->
+            <button
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="px-4 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              ← Prev
+            </button>
+
+            <!-- Page Numbers -->
+            <template v-for="page in pageNumbers" :key="page">
+              <button
+                v-if="page !== '...'"
+                @click="goToPage(page)"
+                :class="[
+                  'px-3 py-1 border rounded-lg text-sm transition-colors',
+                  page === currentPage 
+                    ? 'bg-primary-600 text-white border-primary-600' 
+                    : 'border-gray-300 hover:bg-gray-100'
+                ]"
+              >
+                {{ page }}
+              </button>
+              <span v-else class="px-2 py-1 text-gray-400">...</span>
+            </template>
+
+            <!-- Next -->
+            <button
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === lastPage"
+              class="px-4 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              Next →
+            </button>
+
+            <!-- Last Page -->
+            <button
+              @click="goToPage(lastPage)"
+              :disabled="currentPage === lastPage"
+              class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              title="Halaman Terakhir"
+            >
+              »
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -156,7 +253,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAdminStore } from '../../stores/admin'
 
 const adminStore = useAdminStore()
@@ -166,6 +263,17 @@ const allDinas = ref([])
 const showModal = ref(false)
 const editingUser = ref(null)
 const loading = ref(false)
+
+// Pagination state
+const currentPage = ref(1)
+const lastPage = ref(1)
+const perPage = ref(10)
+const totalUsers = ref(0)
+
+// Search state
+const searchQuery = ref('')
+let searchTimeout = null
+
 const form = ref({
   name: '',
   email: '',
@@ -175,16 +283,88 @@ const form = ref({
   unit_kerja: ''
 })
 
-async function loadUsers() {
+// Computed properties for pagination info
+const startIndex = computed(() => {
+  return users.value.length > 0 ? (currentPage.value - 1) * perPage.value + 1 : 0
+})
+
+const endIndex = computed(() => {
+  return Math.min(currentPage.value * perPage.value, totalUsers.value)
+})
+
+const pageNumbers = computed(() => {
+  const pages = []
+  const delta = 2 // Show 2 pages before and after current
+  
+  for (let i = 1; i <= lastPage.value; i++) {
+    if (
+      i === 1 || // First page
+      i === lastPage.value || // Last page
+      (i >= currentPage.value - delta && i <= currentPage.value + delta) // Near current
+    ) {
+      pages.push(i)
+    } else if (pages[pages.length - 1] !== '...') {
+      pages.push('...')
+    }
+  }
+  
+  return pages
+})
+
+async function loadUsers(page = 1) {
   loading.value = true
   try {
-    await adminStore.fetchUsers()
-    users.value = adminStore.users.data || adminStore.users
+    const params = { page }
+    
+    if (searchQuery.value) {
+      params.search = searchQuery.value
+    }
+    
+    const response = await adminStore.fetchUsers(params)
+    
+    // Update users data
+    users.value = response.data || []
+    
+    // Update pagination meta
+    if (response.meta) {
+      currentPage.value = response.meta.current_page
+      lastPage.value = response.meta.last_page
+      totalUsers.value = response.meta.total
+      perPage.value = response.meta.per_page
+    } else {
+      // Fallback if no pagination meta
+      currentPage.value = 1
+      lastPage.value = 1
+      totalUsers.value = users.value.length
+    }
   } catch (error) {
     console.error('Error loading users:', error)
     alert('Gagal memuat data users')
   } finally {
     loading.value = false
+  }
+}
+
+function handleSearch() {
+  // Debounce search - wait 500ms after user stops typing
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    currentPage.value = 1 // Reset to first page
+    loadUsers(1)
+  }, 500)
+}
+
+function clearSearch() {
+  searchQuery.value = ''
+  currentPage.value = 1
+  loadUsers(1)
+}
+
+function goToPage(page) {
+  if (page >= 1 && page <= lastPage.value && page !== currentPage.value) {
+    loadUsers(page)
+    // Scroll to top of page smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
@@ -256,7 +436,7 @@ async function saveUser() {
       await adminStore.createUser(data)
     }
     closeModal()
-    await loadUsers()
+    await loadUsers(currentPage.value) // Reload current page
   } catch (error) {
     console.error('Error saving user:', error)
     let errorMessage = 'Gagal menyimpan user'
@@ -281,7 +461,7 @@ async function toggleUserStatus(user) {
   if (confirm(`Yakin ingin ${user.is_active ? 'menonaktifkan' : 'mengaktifkan'} akun ${user.name}?`)) {
     try {
       await adminStore.toggleUserStatus(user.id)
-      await loadUsers()
+      await loadUsers(currentPage.value) // Reload current page
     } catch (error) {
       console.error('Error toggling user status:', error)
       alert('Gagal mengubah status user')
@@ -294,7 +474,13 @@ async function deleteUser(id) {
   
   try {
     await adminStore.deleteUser(id)
-    await loadUsers()
+    
+    // If current page becomes empty after delete, go to previous page
+    if (users.value.length === 1 && currentPage.value > 1) {
+      await loadUsers(currentPage.value - 1)
+    } else {
+      await loadUsers(currentPage.value)
+    }
   } catch (error) {
     console.error('Error deleting user:', error)
     alert('Gagal menghapus user')
@@ -306,3 +492,4 @@ onMounted(() => {
   loadDinas()
 })
 </script>
+
