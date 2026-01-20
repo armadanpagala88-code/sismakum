@@ -934,6 +934,51 @@
       </div>
     </div>
 
+    <!-- Registration Success Popup Modal -->
+    <div
+      v-if="showSuccessModal"
+      class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm overflow-y-auto h-full w-full z-[60] flex items-center justify-center p-4"
+    >
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+        <!-- Success Icon -->
+        <div class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+          <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        
+        <!-- Title -->
+        <h3 class="text-2xl font-bold text-gray-900 mb-3">Pendaftaran Berhasil!</h3>
+        
+        <!-- Message -->
+        <p class="text-gray-600 mb-6">
+          Akun Anda berhasil didaftarkan dan sedang menunggu aktivasi dari Administrator.
+          Anda akan dapat login setelah akun diaktifkan.
+        </p>
+        
+        <!-- Info Box -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+          <div class="flex items-start">
+            <svg class="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-sm text-blue-700 text-left">
+              Administrator akan memverifikasi dan mengaktifkan akun Anda. 
+              Proses ini biasanya membutuhkan waktu 1-2 hari kerja.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Close Button -->
+        <button
+          @click="showSuccessModal = false"
+          class="w-full btn btn-primary py-3 text-lg font-semibold"
+        >
+          Tutup
+        </button>
+      </div>
+    </div>
+
     <!-- INFOKAMI PDF Modal -->
     <div
       v-if="selectedInfokami"
@@ -1072,6 +1117,7 @@ const headlineBerita = ref([])
 const bannerList = ref([])
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin
 const showRegisterModal = ref(false)
+const showSuccessModal = ref(false)
 const registerLoading = ref(false)
 const registerError = ref('')
 const registerSuccess = ref('')
@@ -1513,8 +1559,6 @@ async function handleRegister() {
       return
     }
 
-    registerSuccess.value = data.message || 'Pendaftaran berhasil! Akun Anda akan diaktifkan oleh administrator.'
-    
     // Reset form
     registerForm.value = {
       name: '',
@@ -1528,11 +1572,9 @@ async function handleRegister() {
       telepon: ''
     }
 
-    // Close modal after 3 seconds
-    setTimeout(() => {
-      showRegisterModal.value = false
-      registerSuccess.value = ''
-    }, 3000)
+    // Close register modal and show success popup
+    showRegisterModal.value = false
+    showSuccessModal.value = true
   } catch (error) {
     registerError.value = 'Terjadi kesalahan: ' + error.message
   } finally {
