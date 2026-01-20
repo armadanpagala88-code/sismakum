@@ -98,7 +98,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'message' => 'Pendaftaran berhasil! Akun Anda akan diaktifkan oleh administrator.',
-                'user' => $user->load('dinas')
+                'success' => true
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
