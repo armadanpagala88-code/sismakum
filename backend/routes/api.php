@@ -81,6 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/pengusulan-perbub/{id}/update-status', [PengusulanPerbubController::class, 'updateStatus']);
     Route::get('/pengusulan-perbub/{id}/status-history', [PengusulanPerbubController::class, 'getStatusHistory']);
     Route::delete('/catatan-revisi/{id}', [PengusulanPerbubController::class, 'deleteCatatanRevisi']);
+    Route::get('/pengusulan-perbub/stats/pending-count', [PengusulanPerbubController::class, 'getPendingCount']);
 
     // INFOKAMI routes (accessible by authenticated users)
     Route::get('/infokami/all', [InfokamiController::class, 'getAll']);

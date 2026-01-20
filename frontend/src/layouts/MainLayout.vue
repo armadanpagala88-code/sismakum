@@ -60,14 +60,23 @@
           <router-link
             v-if="['verifikator', 'bagian_hukum', 'admin'].includes(user?.role)"
             to="/dashboard/verifikator"
-            class="sidebar-link"
+            class="sidebar-link flex items-center justify-between"
             :class="$route.path.startsWith('/dashboard/verifikator') ? 'sidebar-link-active text-white bg-primary-600/20' : 'sidebar-link-inactive text-slate-300'"
             @click="sidebarOpen = false"
           >
-            <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-            </svg>
-            Verifikasi
+            <div class="flex items-center">
+              <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+              Verifikasi
+            </div>
+            <span 
+              v-if="pendingCount > 0" 
+              class="ml-2 px-2 py-0.5 text-xs font-bold bg-orange-500 text-white rounded-full"
+              title="Pengusulan menunggu verifikasi"
+            >
+              {{ pendingCount }}
+            </span>
           </router-link>
 
           <div v-if="user?.role === 'admin'" class="pt-4">
@@ -256,6 +265,7 @@ const authStore = useAuthStore()
 const sidebarOpen = ref(false)
 const user = computed(() => authStore.user)
 const inactiveUsersCount = ref(0)
+const pendingCount = ref(0)
 
 const userInitials = computed(() => {
   if (!user.value?.name) return 'U'
@@ -283,6 +293,10 @@ onMounted(async () => {
   if (authStore.user?.role === 'admin') {
     await fetchInactiveUsersCount()
   }
+  // Fetch pending count for verifikator/admin badge
+  if (['verifikator', 'bagian_hukum', 'admin'].includes(authStore.user?.role)) {
+    await fetchPendingCount()
+  }
 })
 
 async function fetchInactiveUsersCount() {
@@ -291,6 +305,15 @@ async function fetchInactiveUsersCount() {
     inactiveUsersCount.value = response.data.count || 0
   } catch (error) {
     console.error('Error fetching inactive users count:', error)
+  }
+}
+
+async function fetchPendingCount() {
+  try {
+    const response = await api.get('/pengusulan-perbub/stats/pending-count')
+    pendingCount.value = response.data.count || 0
+  } catch (error) {
+    console.error('Error fetching pending count:', error)
   }
 }
 

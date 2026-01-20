@@ -386,5 +386,12 @@ class PengusulanPerbubController extends Controller
 
         return response()->json(['message' => 'Catatan berhasil dihapus']);
     }
+
+    // Get count of pending pengusulan (diajukan) for sidebar badge
+    public function getPendingCount()
+    {
+        $count = PengusulanPerbub::where('status', 'diajukan')->count();
+        return response()->json(['count' => $count]);
+    }
 }
 
