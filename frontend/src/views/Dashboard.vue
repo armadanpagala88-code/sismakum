@@ -1,112 +1,97 @@
 <template>
   <div>
-    <!-- Page Header -->
     <div class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
-      <p v-if="user?.role === 'dinas'" class="text-lg text-gray-700 font-semibold mb-2">
-        Selamat datang di dashboard, Dinas {{ namaDinas || '' }}
+      <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Selamat datang kembali, {{ user?.name }}
+        <span v-if="user?.role === 'dinas'" class="block mt-1 text-primary-600 font-medium">
+          {{ namaDinas }}
+        </span>
       </p>
-      <p class="text-lg text-gray-600">Ringkasan pengusulan PERBUB</p>
     </div>
-    
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-      <div class="card hover:shadow-lg transition-all duration-200 group">
-        <div class="card-body">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="h-14 w-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-1">Total Pengusulan</p>
-              <p class="text-3xl font-bold text-gray-900">{{ stats.total }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div class="card hover:shadow-lg transition-all duration-200 group">
-        <div class="card-body">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="h-14 w-14 bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-1">Draft</p>
-              <p class="text-3xl font-bold text-gray-900">{{ stats.draft }}</p>
-            </div>
+    <!-- Stats for Dinas -->
+    <div v-if="user?.role === 'dinas'" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center">
+          <div class="p-3 rounded-full bg-blue-50 text-blue-600">
+            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
           </div>
-        </div>
-      </div>
-
-      <div class="card hover:shadow-lg transition-all duration-200 group">
-        <div class="card-body">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-1">Diajukan</p>
-              <p class="text-3xl font-bold text-gray-900">{{ stats.diajukan }}</p>
-            </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Total Usulan</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
           </div>
-        </div>
-      </div>
-
-      <div class="card hover:shadow-lg transition-all duration-200 group">
-        <div class="card-body">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <div class="h-14 w-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <svg class="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="ml-5 flex-1">
-              <p class="text-sm font-medium text-gray-600 mb-1">Diterima</p>
-              <p class="text-3xl font-bold text-gray-900">{{ stats.diterima }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Recent Pengusulan -->
-    <div class="card">
-      <div class="card-header">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-bold text-gray-900">Pengusulan Terbaru</h2>
-          <router-link
-            v-if="user?.role === 'dinas'"
-            to="/dashboard/pengusulan"
-            class="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-          >
-            Lihat Semua →
-          </router-link>
         </div>
       </div>
       
-      <div class="card-body">
-        <div v-if="loading" class="text-center py-12">
-          <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary-600 border-t-transparent"></div>
-          <p class="mt-4 text-sm text-gray-500">Memuat data...</p>
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center">
+          <div class="p-3 rounded-full bg-yellow-50 text-yellow-600">
+            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Menunggu</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.diajukan }}</p>
+          </div>
         </div>
-        
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center">
+          <div class="p-3 rounded-full bg-orange-50 text-orange-600">
+            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Revisi</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.draft }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center">
+          <div class="p-3 rounded-full bg-green-50 text-green-600">
+            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-500">Diterima</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.diterima }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Pengusulan -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900">Daftar Pengusulan</h3>
+        <router-link 
+          v-if="user?.role === 'dinas'"
+          to="/dashboard/pengusulan/create" 
+          class="text-sm font-medium text-primary-600 hover:text-primary-700"
+        >
+          + Buat Baru
+        </router-link>
+      </div>
+
+      <div class="p-6">
+        <div v-if="loading" class="flex justify-center py-8">
+          <svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+
         <div v-else-if="recentPengusulan.length === 0" class="text-center py-12">
-          <div class="mx-auto h-20 w-20 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
             <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
@@ -126,7 +111,7 @@
           <div
             v-for="item in recentPengusulan"
             :key="item.id"
-            class="py-5 first:pt-0 last:pb-0 hover:bg-gray-50 -mx-6 px-6 rounded-xl cursor-pointer transition-all duration-200 group"
+            class="py-5 first:pt-0 hover:bg-gray-50 -mx-6 px-6 cursor-pointer transition-all duration-200 group"
             @click="$router.push(`/dashboard/pengusulan/${item.id}`)"
           >
             <div class="flex items-start justify-between">
@@ -166,10 +151,66 @@
                   </div>
                 </div>
               </div>
-              <svg class="h-5 w-5 text-gray-400 ml-4 flex-shrink-0 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
+              <div class="flex flex-col items-center ml-4 space-y-2">
+                <svg class="h-5 w-5 text-gray-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div v-if="recentPengusulan.length > 0" class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            Menampilkan <span class="font-medium">{{ paginationFrom }}</span> - <span class="font-medium">{{ paginationTo }}</span> dari <span class="font-medium">{{ pagination.total }}</span> data
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="goToPage(1)"
+              :disabled="pagination.currentPage === 1"
+              class="px-3 py-1 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
+              &laquo;
+            </button>
+            <button
+              @click="goToPage(pagination.currentPage - 1)"
+              :disabled="pagination.currentPage === 1"
+              class="px-3 py-1 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
+              &lt;
+            </button>
+            
+            <template v-for="page in visiblePages" :key="page">
+              <button
+                v-if="page !== '...'"
+                @click="goToPage(page)"
+                :class="[
+                  'px-3 py-1 text-sm border rounded-md',
+                  pagination.currentPage === page 
+                    ? 'bg-primary-600 text-white border-primary-600' 
+                    : 'hover:bg-gray-100'
+                ]"
+              >
+                {{ page }}
+              </button>
+              <span v-else class="px-2 text-gray-500">...</span>
+            </template>
+
+            <button
+              @click="goToPage(pagination.currentPage + 1)"
+              :disabled="pagination.currentPage === pagination.lastPage"
+              class="px-3 py-1 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
+              &gt;
+            </button>
+            <button
+              @click="goToPage(pagination.lastPage)"
+              :disabled="pagination.currentPage === pagination.lastPage"
+              class="px-3 py-1 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+            >
+              &raquo;
+            </button>
           </div>
         </div>
       </div>
@@ -191,6 +232,12 @@ const adminStore = useAdminStore()
 const loading = ref(false)
 const recentPengusulan = ref([])
 const dinasData = ref(null)
+const pagination = ref({
+  currentPage: 1,
+  lastPage: 1,
+  total: 0,
+  perPage: 10
+})
 
 const user = computed(() => authStore.user)
 
@@ -206,6 +253,38 @@ const namaDinas = computed(() => {
     }
   }
   return ''
+})
+
+const paginationFrom = computed(() => {
+  if (pagination.value.total === 0) return 0
+  return (pagination.value.currentPage - 1) * pagination.value.perPage + 1
+})
+
+const paginationTo = computed(() => {
+  const to = pagination.value.currentPage * pagination.value.perPage
+  return to > pagination.value.total ? pagination.value.total : to
+})
+
+const visiblePages = computed(() => {
+  const current = pagination.value.currentPage
+  const last = pagination.value.lastPage
+  const pages = []
+  
+  if (last <= 7) {
+    for (let i = 1; i <= last; i++) {
+      pages.push(i)
+    }
+  } else {
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, '...', last)
+    } else if (current >= last - 2) {
+      pages.push(1, '...', last - 3, last - 2, last - 1, last)
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', last)
+    }
+  }
+  
+  return pages
 })
 
 // Fetch dinas data jika user punya dinas_id tapi belum ada relasi dinas
@@ -251,11 +330,15 @@ watch(() => user.value, (newUser) => {
 
 const stats = computed(() => {
   const total = recentPengusulan.value.length
-  const draft = recentPengusulan.value.filter(p => p.status === 'draft').length
-  const diajukan = recentPengusulan.value.filter(p => p.status === 'diajukan').length
-  const diterima = recentPengusulan.value.filter(p => p.status === 'diterima').length
-  
-  return { total, draft, diajukan, diterima }
+  // Stats should ideally come from backend or be calculated from all data, 
+  // currently just showing sample if data is paginated
+  // This is a limitation to be improved later by fetching specific stats endpoint
+  return { 
+    total: pagination.value.total || 0, 
+    draft: 0, // Placeholder
+    diajukan: 0, // Placeholder 
+    diterima: 0 // Placeholder
+  }
 })
 
 function getStatusBadgeClass(status) {
@@ -289,22 +372,21 @@ function formatDate(date) {
   })
 }
 
-onMounted(async () => {
-  // Ensure user data is loaded
-  if (authStore.isAuthenticated && !authStore.user) {
-    await authStore.fetchUser()
-  }
-  
-  // Load dinas data if needed
-  await loadDinasData()
-  
+async function loadPengusulan(page = 1) {
   loading.value = true
   try {
-    const response = await pengusulanStore.fetchPengusulan({ per_page: 5 })
+    const response = await pengusulanStore.fetchPengusulan({ page, per_page: 10 })
     if (response.data) {
       recentPengusulan.value = Array.isArray(response.data) ? response.data : []
+      // Update pagination info from Laravel response
+      pagination.value = {
+        currentPage: response.current_page || 1,
+        lastPage: response.last_page || 1,
+        total: response.total || 0,
+        perPage: response.per_page || 10
+      }
     } else if (Array.isArray(response)) {
-      recentPengusulan.value = response.slice(0, 5)
+      recentPengusulan.value = response
     } else {
       recentPengusulan.value = []
     }
@@ -314,6 +396,25 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+}
+
+function goToPage(page) {
+  if (page >= 1 && page <= pagination.value.lastPage && page !== pagination.value.currentPage) {
+    loadPengusulan(page)
+  }
+}
+
+onMounted(async () => {
+  // Ensure user data is loaded
+  if (authStore.isAuthenticated && !authStore.user) {
+    await authStore.fetchUser()
+  }
+  
+  // Load dinas data if needed
+  await loadDinasData()
+  
+  // Initial load
+  await loadPengusulan()
 })
 </script>
 
