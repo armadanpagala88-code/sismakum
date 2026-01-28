@@ -1,24 +1,11 @@
 <template>
-  <div class="space-y-6">
-    <div class="flex justify-between items-center">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Dashboard Verifikator</h1>
-        <p class="text-gray-600 mt-1">Verifikasi dan review usulan PERBUB</p>
-      </div>
-      <button
-        @click="printData"
-        class="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-      >
-        🖨️ Cetak PDF
-      </button>
-    </div>
-
-    <!-- Statistics -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="p-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
-          <div class="p-3 bg-blue-100 rounded-lg">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-3 rounded-full bg-blue-100">
+            <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
@@ -28,11 +15,12 @@
           </div>
         </div>
       </div>
+
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
-          <div class="p-3 bg-yellow-100 rounded-lg">
-            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          <div class="p-3 rounded-full bg-yellow-100">
+            <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
           </div>
           <div class="ml-4">
@@ -41,10 +29,11 @@
           </div>
         </div>
       </div>
+
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
-          <div class="p-3 bg-green-100 rounded-lg">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-3 rounded-full bg-green-100">
+            <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -111,6 +100,60 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls -->
+      <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div class="text-sm text-gray-700">
+          Menampilkan <span class="font-medium">{{ paginationFrom }}</span> - <span class="font-medium">{{ paginationTo }}</span> dari <span class="font-medium">{{ pagination.total }}</span> data
+        </div>
+        <div class="flex items-center space-x-2">
+          <button
+            @click="goToPage(1)"
+            :disabled="pagination.currentPage === 1"
+            class="px-3 py-1 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+          >
+            &laquo;
+          </button>
+          <button
+            @click="goToPage(pagination.currentPage - 1)"
+            :disabled="pagination.currentPage === 1"
+            class="px-3 py-1 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+          >
+            &lt;
+          </button>
+          
+          <template v-for="page in visiblePages" :key="page">
+            <button
+              v-if="page !== '...'"
+              @click="goToPage(page)"
+              :class="[
+                'px-3 py-1 text-sm border rounded-md',
+                pagination.currentPage === page 
+                  ? 'bg-blue-600 text-white border-blue-600' 
+                  : 'hover:bg-gray-100'
+              ]"
+            >
+              {{ page }}
+            </button>
+            <span v-else class="px-2 text-gray-500">...</span>
+          </template>
+
+          <button
+            @click="goToPage(pagination.currentPage + 1)"
+            :disabled="pagination.currentPage === pagination.lastPage"
+            class="px-3 py-1 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+          >
+            &gt;
+          </button>
+          <button
+            @click="goToPage(pagination.lastPage)"
+            :disabled="pagination.currentPage === pagination.lastPage"
+            class="px-3 py-1 text-sm border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+          >
+            &raquo;
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -122,6 +165,44 @@ import { usePengusulanStore } from '../stores/pengusulan'
 const pengusulanStore = usePengusulanStore()
 const pengusulan = ref([])
 const stats = ref({})
+const pagination = ref({
+  currentPage: 1,
+  lastPage: 1,
+  total: 0,
+  perPage: 10
+})
+
+const paginationFrom = computed(() => {
+  if (pagination.value.total === 0) return 0
+  return (pagination.value.currentPage - 1) * pagination.value.perPage + 1
+})
+
+const paginationTo = computed(() => {
+  const to = pagination.value.currentPage * pagination.value.perPage
+  return to > pagination.value.total ? pagination.value.total : to
+})
+
+const visiblePages = computed(() => {
+  const current = pagination.value.currentPage
+  const last = pagination.value.lastPage
+  const pages = []
+  
+  if (last <= 7) {
+    for (let i = 1; i <= last; i++) {
+      pages.push(i)
+    }
+  } else {
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, '...', last)
+    } else if (current >= last - 2) {
+      pages.push(1, '...', last - 3, last - 2, last - 1, last)
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', last)
+    }
+  }
+  
+  return pages
+})
 
 function getStatusClass(status) {
   const classes = {
@@ -152,12 +233,20 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('id-ID')
 }
 
-async function loadPengusulan() {
+async function loadPengusulan(page = 1) {
   try {
-    const response = await pengusulanStore.fetchPengusulan()
+    const response = await pengusulanStore.fetchPengusulan({ page })
     pengusulan.value = response.data || []
     
-    // Calculate stats
+    // Update pagination info from Laravel response
+    pagination.value = {
+      currentPage: response.current_page || 1,
+      lastPage: response.last_page || 1,
+      total: response.total || 0,
+      perPage: response.per_page || 10
+    }
+    
+    // Calculate stats from current page data (or fetch separately if needed)
     stats.value = {
       diajukan: pengusulan.value.filter(p => p.status === 'diajukan').length,
       revisi: pengusulan.value.filter(p => p.status === 'revisi').length,
@@ -168,13 +257,19 @@ async function loadPengusulan() {
   }
 }
 
+function goToPage(page) {
+  if (page >= 1 && page <= pagination.value.lastPage && page !== pagination.value.currentPage) {
+    loadPengusulan(page)
+  }
+}
+
 async function confirmDelete(item) {
   const confirmed = confirm(`Apakah Anda yakin ingin menghapus usulan "${item.judul_perbub}"? Tindakan ini tidak dapat dibatalkan.`)
   if (confirmed) {
     try {
       await pengusulanStore.deletePengusulan(item.id)
       alert('Usulan berhasil dihapus')
-      await loadPengusulan()
+      await loadPengusulan(pagination.value.currentPage)
     } catch (error) {
       console.error('Error deleting pengusulan:', error)
       alert(error.response?.data?.message || 'Gagal menghapus usulan')
@@ -188,7 +283,7 @@ function printData() {
   
   const tableRows = pengusulan.value.map((item, index) => `
     <tr>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+      <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${paginationFrom.value + index}</td>
       <td style="border: 1px solid #ddd; padding: 8px;">${item.judul_perbub || '-'}</td>
       <td style="border: 1px solid #ddd; padding: 8px;">${item.nomor_surat || '-'}</td>
       <td style="border: 1px solid #ddd; padding: 8px;">${item.dinas?.name || '-'}</td>
@@ -245,7 +340,7 @@ function printData() {
       </table>
       
       <div class="footer">
-        <p>Total: ${pengusulan.value.length} usulan</p>
+        <p>Halaman ${pagination.value.currentPage} dari ${pagination.value.lastPage} - Total: ${pagination.value.total} usulan</p>
       </div>
       
       <scr` + `ipt>
@@ -261,4 +356,3 @@ onMounted(() => {
   loadPengusulan()
 })
 </script>
-
